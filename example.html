@@ -1,3 +1,4 @@
+<html>
 <head>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.2/dist/leaflet.css"
    integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ=="
@@ -20,8 +21,50 @@
 <div id="mapid"></div>
 
 <script>
-var mymap = L.map('mapid', {crs: L.CRS.Simple, maxZoom: 10, minZoom: 1}).setView([0, 0], 10);
-L.tileLayer("PATH_TO_TILE_DIRECTORY/{z}/{y}/{x}.jpg").addTo(mymap);
+var loadBoundary = function ()
+{
+	var qs = window.location.search;
+	if (qs.length > 1) {
+		qs = qs.substring(1);
+		qs = qs.split(',');
+	}
+	if (qs.length === 3) {
+		qs[0] = Number.parseFloat(qs[0]);
+		qs[1] = Number.parseFloat(qs[1]);
+		qs[2] = Number.parseInt(qs[2]);
+	} else {
+		qs = [0, 0, 10] // Set default center and zoom here
+	}
+
+	return qs;
+}
+
+var saveBoundary = function ()
+{
+	var center = mymap.getCenter();
+	var zoom = Number.parseFloat(mymap.getZoom()).toPrecision(1);
+	var url = '?' + center.lat.toPrecision(5) + ',' + center.lng.toPrecision(5) + ',' + zoom;
+	window.history.replaceState({}, '', url);
+}
+
+var b = loadBoundary();
+console.log(b);
+
+var mymap = L.map(
+	'mapid', {
+		crs: L.CRS.Simple,
+		maxZoom: 10,
+		minZoom: 1,
+		wheelPxPerZoomLevel: 500
+	}).setView([b[0], b[1]], b[2]);
+
+mymap.on('moveend', function (e) {
+	saveBoundary();
+});
+	
+L.tileLayer("{z}/{y}/{x}.jpg").addTo(mymap); // set relative path to your tiles here
+	
 </script>
 
 </body>
+</html>
